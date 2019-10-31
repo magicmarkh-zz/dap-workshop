@@ -1,0 +1,36 @@
+LAB 1
+-----
+8.  docker container ls
+9.  docker exec dap-cli conjur list
+10. docker exec dap-cli cat /policy/lab1.yml 
+11. docker exec dap-cli conjur policy load root /policy/lab1.yml 
+17. epv/dbaccess/database_accounts/lab1/password
+18. epv/dbaccess/database_accounts/lab1/username
+
+LAB 2
+-----
+2. lab2/lab2-connection-token
+3. LAB2_K8sAPIAccess
+4. node{
+     stage('Get Namespace Info'){
+         withCredentials([conjurSecretCredential(credentialsId: 'lab2-token', variable: 'TOKEN')]){
+             sh 'curl https://10.0.0.3:6443/apis/apps/v1/namespaces/lab2/deployments -k -H "Authorization: Bearer $TOKEN"'
+         }
+     }
+ }
+
+LAB 3
+-----
+2.  kubectl apply -f dap-workshop/lab3/lab3.yml 
+5.  cat scripts/local-k8s-secret.sh 
+6.  ./scripts/ local-k8s-secret.sh 
+8.  kubectl apply -f dap-workshop/lab3/dapAccessManifest.yml 
+9.  ./dap-workshop/lab3/config.sh 
+13. kubectl apply -f lab3/lab3-dap.yml 
+15. ./scripts/local-k8s-secret.sh 
+
+LAB 4
+-----
+2. kubectl apply -f lab4/lab4.yml
+5. cat scripts/dap-k8s-secret.sh  
+6. ./scripts/dap-k8s-secret.sh 
