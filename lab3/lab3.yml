@@ -1,0 +1,70 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab3
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lab3-svc
+  namespace: lab3
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lab3-user-pass
+  namespace: lab3
+type: Opaque
+data:
+  username: bGFiM3VzZXI=
+  password: Q3liZXJhcmsx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-app
+  namespace: lab3
+  labels:
+    app: lab3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab3
+  template:
+    metadata:
+      labels:
+        app: lab3
+    spec:
+      serviceAccountName: lab3-svc
+      containers:
+      - name: lab3
+        image: magicmarkh/dap-workshop-k8s:v1
+        imagePullPolicy: IfNotPresent
+        command:
+          - /bin/sh
+          - "-c"
+          - "sleep 999m"
+        volumeMounts:
+        - name: secrets
+          mountPath:  "/etc/secrets"
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+      volumes:
+      - name: secrets
+        secret:
+          secretName: lab3-user-pass
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-app-ssl
+  namespace: lab3

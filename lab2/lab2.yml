@@ -1,0 +1,73 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab2
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lab2-svc-account
+  namespace: lab2
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lab2-api-access
+  namespace: lab2
+rules:
+  - apiGroups: ["apps"]
+    resources: ["pods", "nodes", "deployments", "namespaces"]
+    verbs: ["get", "watch", "list"]
+    
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lab2-api-role-binding
+  namespace: lab2
+subjects:
+- kind: ServiceAccount
+  namespace: lab2
+  name: lab2-svc-account
+roleRef:
+  kind: Role
+  name: lab2-api-access
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab2
+  namespace: lab2
+  labels:
+    app: lab2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: lab2
+  template:
+    metadata:
+      labels:
+        role: lab2
+    spec:
+      serviceAccountName: lab2-svc-account
+      containers:
+      - name: lab2
+        image: alpine:3.10
+        imagePullPolicy: IfNotPresent
+        command:
+          - /bin/ash
+          - "-c"
+          - "sleep 999m"
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "125m"
+          limits:
+            memory: "32Mi"
+            cpu: "250m"

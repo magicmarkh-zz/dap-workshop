@@ -1,0 +1,120 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab4
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lab4-svc
+  namespace: lab4
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-app-ssl
+  namespace: lab4
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-app
+  namespace: lab4
+  labels:
+    app: lab4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: lab4
+  template:
+    metadata:
+      labels:
+        role: lab4
+    spec:
+      serviceAccountName: lab4-svc
+      containers:
+      - name: app-container
+        image: magicmarkh/dap-workshop-k8s:v1
+        imagePullPolicy: Always
+        command:
+          - /bin/sh
+          - "-c"
+          - "sleep 999m"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        volumeMounts:
+          - mountPath: /run/conjur
+            name: conjur-access-token
+            readOnly: true
+        env:
+          - name: CONJUR_APPLIANCE_URL
+            value: https://access.dap.svc.cluster.local/api
+          - name: CONJUR_ACCOUNT
+            value: acme    
+          - name: USERNAME_PATH
+            value: epv/dbaccess/mysql_app_accts/mysql-appuser/username
+          - name: SECRET_PATH
+            value: epv/dbaccess/mysql_app_accts/mysql-appuser/password
+      - name: authenticator
+        image: cyberark/conjur-authn-k8s-client
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: MY_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: MY_POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: CONJUR_APPLIANCE_URL
+            value: https://access.dap.svc.cluster.local/api
+          - name: CONJUR_AUTHN_URL
+            value: https://access.dap.svc.cluster.local/api/authn-k8s/k8s-follower
+          - name: CONJUR_ACCOUNT
+            value: acme
+          - name: CONJUR_VERSION
+            value: '5'
+          - name: CONJUR_AUTHN_LOGIN
+            value: host/conjur/authn-k8s/k8s-follower/apps/lab4/*/*
+          - name: CONJUR_SSL_CERTIFICATE
+            valueFrom:
+              configMapKeyRef:
+                name: k8s-app-ssl
+                key: ssl-certificate
+        volumeMounts:
+          - mountPath: /run/conjur
+            name: conjur-access-token
+      volumes:
+        - name: conjur-access-token
+          emptyDir:
+            medium: Memory
+           
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: application-conjur-authenticator-role-binding-dap
+  namespace: lab4
+subjects:
+- kind: ServiceAccount
+  name: conjur-cluster
+  namespace: dap
+roleRef:
+  name: conjur-authenticator
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole

@@ -1,0 +1,140 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab3
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lab3-user-pass
+  namespace: lab3
+type: Opaque
+stringData:
+  conjur-map: |-
+    username: lab3/username
+    password: lab3/password
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lab3-svc
+  namespace: lab3
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: lab3
+  name: secrets-access-binding
+subjects:
+  - kind: ServiceAccount
+    namespace: lab3
+    name: lab3-svc
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: secrets-access
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lab3-conjur-authenticator-role-binding-dap
+  namespace: lab3
+subjects:
+  - kind: ServiceAccount
+    name: conjur-cluster
+    namespace: dap
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: conjur-authenticator-dap
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: secrets-access
+rules:
+  - apiGroups: [""]
+    resources: [ "secrets" ]
+    verbs: [ "get", "patch" ]
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-app
+  namespace: lab3
+  labels:
+    app: lab3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab3
+  template:
+    metadata:
+      labels:
+        app: lab3
+    spec:
+      serviceAccountName: lab3-svc
+      containers:
+      - name: app-container
+        image: magicmarkh/dap-workshop-k8s:v1
+        imagePullPolicy: IfNotPresent
+        command:
+          - /bin/sh
+          - "-c"
+          - "sleep 999m"
+        volumeMounts:
+        - name: secrets
+          mountPath:  "/etc/secrets"
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+      initContainers:
+      - name: authenticator
+        image: captainfluffytoes/k8s-secret-synch:0.2.0
+        imagePullPolicy: Always
+        env:
+          - name: CONTAINER_MODE
+            value: init
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: MY_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: MY_POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: CONJUR_APPLIANCE_URL
+            value: https://access.dap.svc.cluster.local/api
+          - name: CONJUR_AUTHN_URL
+            value: https://access.dap.svc.cluster.local/api/authn-k8s/k8s-follower
+          - name: CONJUR_ACCOUNT
+            value: acme
+          - name: CONJUR_VERSION
+            value: '5'
+          - name: CONJUR_AUTHN_LOGIN
+            value: host/conjur/authn-k8s/k8s-follower/apps/lab3/*/*
+          - name: CONJUR_SSL_CERTIFICATE
+            valueFrom:
+              configMapKeyRef:
+                name: k8s-app-ssl
+                key: ssl-certificate
+          - name: K8S_SECRETS
+            value: lab3-user-pass
+          - name: SECRETS_DESTINATION
+            value: k8s_secrets
+      volumes:
+      - name: secrets
+        secret:
+          secretName: lab3-user-pass
