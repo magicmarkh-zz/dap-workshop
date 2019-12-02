@@ -22,6 +22,15 @@ metadata:
   namespace: lab3
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: secrets-access
+rules:
+  - apiGroups: [""]
+    resources: [ "secrets" ]
+    verbs: [ "get", "patch" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   namespace: lab3
@@ -34,30 +43,6 @@ roleRef:
   kind: ClusterRole
   apiGroup: rbac.authorization.k8s.io
   name: secrets-access
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: lab3-conjur-authenticator-role-binding-dap
-  namespace: lab3
-subjects:
-  - kind: ServiceAccount
-    name: conjur-cluster
-    namespace: dap
-roleRef:
-  kind: ClusterRole
-  apiGroup: rbac.authorization.k8s.io
-  name: conjur-authenticator-dap
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: secrets-access
-rules:
-  - apiGroups: [""]
-    resources: [ "secrets" ]
-    verbs: [ "get", "patch" ]
-
 ---
 apiVersion: apps/v1
 kind: Deployment
