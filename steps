@@ -10,6 +10,7 @@ LAB 1
 LAB 2
 -----
 2. lab2/lab2-connection-token
+   lab2-token
 3. LAB2_K8sAPIAccess
 4. node{
      stage('Get Namespace Info'){
