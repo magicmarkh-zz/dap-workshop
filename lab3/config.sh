@@ -10,6 +10,7 @@ openssl s_client -showcerts -connect dap-master:443 </dev/null 2> /dev/null | se
 kubectl create configmap -n dap k8s-app-ssl --from-file $DIR/ssl-certificate -o yaml --dry-run | kubectl replace -f -
 kubectl create configmap -n lab3 k8s-app-ssl --from-file $DIR/ssl-certificate -o yaml --dry-run | kubectl replace -f -
 kubectl create configmap -n lab4 k8s-app-ssl --from-file $DIR/ssl-certificate -o yaml --dry-run | kubectl replace -f -
+kubectl create configmap -n lab5 k8s-app-ssl --from-file $DIR/ssl-certificate -o yaml --dry-run | kubectl replace -f -
 
 #retrieve the name of the secret that stores the service account token
 TOKEN_SECRET_NAME="$(kubectl get secrets -n dap | grep 'conjur.*service-account-token' | head -n1 | awk '{print $1}')"

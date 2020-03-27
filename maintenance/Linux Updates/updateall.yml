@@ -1,0 +1,9 @@
+---
+- hosts: all
+  become: True
+  tasks:
+    - name: update all packages to the latest version
+      apt:
+        upgrade: yes
+        update_cache: yes
+        autoremove: yes

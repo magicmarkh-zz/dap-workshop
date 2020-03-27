@@ -64,7 +64,7 @@ spec:
       serviceAccountName: lab3-svc
       containers:
       - name: app-container
-        image: magicmarkh/dap-workshop-k8s:v1
+        image: magicmarkh/dap-workshop-k8s:v2
         imagePullPolicy: IfNotPresent
         command:
           - /bin/sh

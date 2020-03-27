@@ -35,3 +35,13 @@ LAB 4
 2. kubectl apply -f /home/cybradmin/dap-workshop/lab4/lab4.yml
 5. cat scripts/dap-k8s-secret.sh  
 6. ./scripts/dap-k8s-secret.sh 
+
+
+LAB 5
+-----
+2. kubectl apply -f /home/cybradmin/dap-workshop/lab5/lab5.yml
+4. cat scripts/mysql-performers.sh
+5. ./scripts/mysql-performers.sh
+7. kubectl apply -f /home/cybradmin/dap-workshop/lab5/lab5-dap.yml
+14. cat scripts/mysql-performers.sh
+15. ./scripts/mysql-performers.sh

@@ -1,0 +1,157 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab5
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lab5-svc
+  namespace: lab5
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: application-conjur-authenticator-role-binding-dap
+  namespace: lab5
+subjects:
+  - kind: ServiceAccount
+    name: conjur-cluster
+    namespace: dap
+roleRef:
+  kind: ClusterRole
+  name: conjur-authenticator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: secretless-config
+  namespace: lab5
+data:
+  secretless.yml: |
+    version: "2"
+    services:
+      mysql_tcp:
+        connector: mysql
+        listenOn: tcp://0.0.0.0:3306
+        credentials:
+          host: 10.0.0.9
+          port: 3306
+          username:
+            from: conjur
+            get: epv/dbaccess/mysql_app_accts/lab5/username
+          password:
+            from: conjur
+            get: epv/dbaccess/mysql_app_accts/lab5/password
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lab5-user-pass
+  namespace: lab5
+type: Opaque
+data:
+  username: YXBwdXNlcl9sYWI1
+  password: Q3liZXJhcmsx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-app
+  namespace: lab5
+  labels:
+    app: lab5
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab5
+  template:
+    metadata:
+      labels:
+        app: lab5
+    spec:
+      serviceAccountName: lab5-svc
+      containers:
+      - name: secretless
+        image: cyberark/secretless-broker:latest
+        args: ["-f", "/etc/secretless/secretless.yml"]
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 3306
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: MY_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: MY_POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: CONJUR_APPLIANCE_URL
+            value: https://access.dap.svc.cluster.local/api
+          - name: CONJUR_AUTHN_URL
+            value: https://access.dap.svc.cluster.local/api/authn-k8s/k8s-follower
+          - name: CONJUR_ACCOUNT
+            value: acme
+          - name: CONJUR_VERSION
+            value: '5'
+          - name: CONJUR_AUTHN_LOGIN
+            value: host/conjur/authn-k8s/k8s-follower/apps/lab5/*/*
+          - name: CONJUR_SSL_CERTIFICATE
+            valueFrom:
+              configMapKeyRef:
+                name: k8s-app-ssl
+                key: ssl-certificate
+        volumeMounts:
+          - mountPath: /etc/secretless
+            name: config
+            readOnly: true
+          - mountPath: /run/conjur
+            name: conjur-access-token
+      - name: lab5
+        image: magicmarkh/dap-workshop-k8s:v2
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: LAB5_USER
+            valueFrom:
+              secretKeyRef:
+                name: lab5-user-pass
+                key: username
+          - name: LAB5_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: lab5-user-pass
+                key: password
+          - name: LAB5_DB_HOST
+            value: "127.0.0.1"
+        command: ["sleep","infinity"]
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+      volumes:
+        - name: conjur-access-token
+          emptyDir:
+            medium: Memory
+        - name: config
+          configMap:
+            name: secretless-config
+            defaultMode: 420
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-app-ssl
+  namespace: lab5

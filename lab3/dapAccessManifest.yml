@@ -121,7 +121,7 @@ spec:
       containers:
       - name: node
         imagePullPolicy: IfNotPresent
-        image: conjur-appliance:5.6.0
+        image: registry.tld/conjur-appliance:11.3.0
         command: ["tmp/seedfile/start-follower.sh"]
         env:
           - name: CONJUR_AUTHENTICATORS

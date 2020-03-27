@@ -39,7 +39,7 @@ spec:
       serviceAccountName: lab4-svc
       containers:
       - name: app-container
-        image: magicmarkh/dap-workshop-k8s:v1
+        image: magicmarkh/dap-workshop-k8s:v2
         imagePullPolicy: Always
         command:
           - /bin/sh
