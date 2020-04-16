@@ -1,0 +1,4 @@
+---
+- !grant
+  role: !group epv/dbaccess/mysql_app_accts/delegation/consumers
+  member: !host conjur/authn-k8s/k8s-follower/apps/lab5/*/*

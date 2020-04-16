@@ -1,0 +1,23 @@
+---
+- !host Sync_HOST-1
+
+- !group epv_admins
+
+- !grant
+  role: !group epv_admins
+  member: !host Sync_HOST-1
+
+- !policy
+  id: epv
+  owner: !group epv_admins
+
+- !policy
+  id: jenkins
+
+- !policy lab1
+
+- !policy lab2
+
+- !policy lab3
+
+- !policy lab5

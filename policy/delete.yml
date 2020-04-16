@@ -1,0 +1,6 @@
+---
+- !delete
+  record: !variable epv/dbaccess/mysql_app_accts/Database-MySQL-10.0.0.9-appuser_lab5/password
+
+- !delete
+  record: !variable epv/dbaccess/mysql_app_accts/Database-MySQL-10.0.0.9-appuser_lab5/username

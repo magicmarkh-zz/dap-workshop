@@ -1,0 +1,4 @@
+---
+- !grant
+  role: !group epv/dbaccess/database_accounts/delegation/consumers
+  member: !host jenkins/jenkins-master

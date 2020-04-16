@@ -1,0 +1,9 @@
+---
+- &variables
+  - !variable username
+  - !variable password
+
+- !permit
+  role: !host /conjur/authn-k8s/k8s-follower/apps/lab3/*/*
+  privileges: [ read, execute ]
+  resources: *variables

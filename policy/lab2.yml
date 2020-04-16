@@ -1,0 +1,8 @@
+---
+- &variables
+  - !variable lab2-connection-token
+
+- !permit
+  role: !host /jenkins/jenkins-master
+  privileges: [ read, execute ]
+  resources: *variables
