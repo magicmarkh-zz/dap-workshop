@@ -77,7 +77,7 @@ spec:
       serviceAccountName: lab5-svc
       containers:
       - name: secretless
-        image: cyberark/secretless-broker:latest
+        image: cyberark/secretless-broker:1.6
         args: ["-f", "/etc/secretless/secretless.yml"]
         imagePullPolicy: IfNotPresent
         ports:

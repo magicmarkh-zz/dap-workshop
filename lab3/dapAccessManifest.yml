@@ -81,7 +81,7 @@ spec:
         - "dap-master"
       initContainers:
       - name: authenticator
-        image: cyberark/dap-seedfetcher:latest
+        image: cyberark/dap-seedfetcher:0.1.6
         imagePullPolicy: IfNotPresent
         env:
           - name: CONJUR_SEED_FILE_URL
@@ -121,7 +121,7 @@ spec:
       containers:
       - name: node
         imagePullPolicy: IfNotPresent
-        image: registry.tld/conjur-appliance:11.3.0
+        image: conjur-appliance:11.6.0
         command: ["tmp/seedfile/start-follower.sh"]
         env:
           - name: CONJUR_AUTHENTICATORS

@@ -66,7 +66,7 @@ spec:
           - name: SECRET_PATH
             value: epv/dbaccess/mysql_app_accts/mysql-appuser/password
       - name: authenticator
-        image: cyberark/conjur-authn-k8s-client
+        image: cyberark/conjur-authn-k8s-client:0.18
         imagePullPolicy: IfNotPresent
         env:
           - name: MY_POD_NAME

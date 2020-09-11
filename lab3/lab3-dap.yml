@@ -69,7 +69,7 @@ spec:
         command:
           - /bin/sh
           - "-c"
-          - "sleep 999m"
+          - "sleep infinity"
         volumeMounts:
         - name: secrets
           mountPath:  "/etc/secrets"
@@ -83,7 +83,7 @@ spec:
             cpu: "500m"
       initContainers:
       - name: authenticator
-        image: captainfluffytoes/k8s-secret-synch:0.2.0
+        image: cyberark/secrets-provider-for-k8s:1.0
         imagePullPolicy: Always
         env:
           - name: CONTAINER_MODE
